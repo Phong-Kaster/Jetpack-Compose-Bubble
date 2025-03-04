@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.jetpack.bubble;
+package com.apero.bubble;
 
 import android.app.Activity;
 import android.content.Context;
@@ -26,7 +26,7 @@ import android.os.Build;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
-
+import androidx.core.view.ViewCompat;
 import android.util.DisplayMetrics;
 import android.view.DisplayCutout;
 import android.view.HapticFeedbackConstants;

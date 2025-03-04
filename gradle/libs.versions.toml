@@ -11,6 +11,7 @@ composeBom = "2024.04.01"
 dynamicanimation = "1.0.0"
 materialVersion = "1.12.0"
 appcompat = "1.7.0"
+lifecycleService = "2.8.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,6 +32,7 @@ androidx-dynamicanimation = { module = "androidx.dynamicanimation:dynamicanimati
 material = { group = "com.google.android.material", name = "material", version.ref = "materialVersion" }
 
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycleService" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

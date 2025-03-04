@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.jetpack.bubble;
+package com.apero.bubble;
 
 /**
  * TrashViewのイベントを扱うリスナです。

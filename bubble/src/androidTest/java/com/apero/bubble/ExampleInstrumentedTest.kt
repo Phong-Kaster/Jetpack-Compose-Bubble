@@ -1,4 +1,4 @@
-package com.jetpack.bubble
+package com.apero.bubble
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

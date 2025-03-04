@@ -1,4 +1,4 @@
-package com.jetpack.bubble
+package com.apero.bubble
 
 import org.junit.Test
 
