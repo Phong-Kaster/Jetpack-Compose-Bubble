@@ -41,6 +41,18 @@
                 android:src="@drawable/ic_camera" />
         </FrameLayout>
 
+        <com.jetpack.menubar.FoldingTabBar
+            android:id="@+id/menuBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_toolbar"
+            android:paddingHorizontal="4dp"
+            app:itemPadding="6dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/layout"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+
         <!-- Work around to fix this bug RECORD-154, Don't remove this view-->
         <View
             android:id="@+id/invisible"

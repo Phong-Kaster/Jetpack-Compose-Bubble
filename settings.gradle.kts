@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "Jetpack Compose Bubble"
 include(":app")
 include(":bubble")
+include(":menubar")

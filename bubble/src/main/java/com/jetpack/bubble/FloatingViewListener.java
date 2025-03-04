@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package com.apero.bubble;
+package com.jetpack.bubble;
 
-import android.graphics.Rect;
 
 /**
- * スクリーンの変化を扱うリスナです。
+ * FloatingViewのリスナです。
  */
-interface ScreenChangedListener {
+public interface FloatingViewListener {
+
     /**
-     * スクリーンが変化した時に呼び出されます。
-     *
-     * @param windowRect System window rect
-     * @param visibility System UI Mode
+     * FloatingViewを終了する際に呼び出されます。
      */
-    void onScreenChanged(Rect windowRect, int visibility);
+    void onFinishFloatingView();
+
+    /**
+     * Callback when touch action finished.
+     *
+     * @param isFinishing Whether FloatingView is being deleted or not.
+     * @param x           x coordinate
+     * @param y           y coordinate
+     */
+    void onTouchFinished(boolean isFinishing, int x, int y);
+
+    void onTouchStarted();
+
 }

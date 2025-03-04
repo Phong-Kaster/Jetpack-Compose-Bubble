@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.apero.bubble;
+package com.jetpack.bubble;
 
 import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
@@ -36,7 +36,6 @@ import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;

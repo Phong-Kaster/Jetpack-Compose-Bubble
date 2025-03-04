@@ -9,18 +9,18 @@ import android.graphics.Rect
 import android.os.Build
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.lifecycleScope
-import com.apero.bubble.FloatingViewListener
-import com.apero.bubble.FloatingViewManager
+import com.jetpack.bubble.FloatingViewListener
+import com.jetpack.bubble.FloatingViewManager
 import com.example.jetpackcomposebubble.R
 import com.example.jetpackcomposebubble.databinding.LayoutBubbleScreenshotBinding
 import com.example.jetpackcomposebubble.util.AppUtil
-import kotlinx.coroutines.launch
+import com.jetpack.menubar.FoldingTabBar
 
 /**
  * Screenshot bubble service plays a role that draws a shotcut overlays other application to capture screen.
@@ -190,6 +190,43 @@ class BubbleService : LifecycleService() {
 //                    }
 //                }
             }
+
+            fabLayout.menuBar.onFoldingItemClickListener = object : FoldingTabBar.OnFoldingItemSelectedListener {
+                override fun onFoldingItemSelected(item: MenuItem): Boolean {
+                    Toast.makeText(this@BubbleService, "onFoldingItemSelected", Toast.LENGTH_SHORT).show()
+                    return true
+                }
+
+                override fun onOpened() {
+                    Toast.makeText(this@BubbleService, "open", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onClosed() {
+                    Toast.makeText(this@BubbleService, "close", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onOpenSetting() {
+                    Toast.makeText(this@BubbleService, "open setting", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onOpenHome() {
+                    Toast.makeText(this@BubbleService, "on pause resume", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onStartStop() {
+                    Toast.makeText(this@BubbleService, "on pause resume", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onPauseResume() {
+                    Toast.makeText(this@BubbleService, "on pause resume", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onOpenTool() {
+                    Toast.makeText(this@BubbleService, "open tool", Toast.LENGTH_SHORT).show()
+                }
+
+            }
+
             fabManager.removeTrashView()
         } catch (ex: Exception) {
             AppUtil.logcat(tag = tag, message = "exception = ${ex.message}")

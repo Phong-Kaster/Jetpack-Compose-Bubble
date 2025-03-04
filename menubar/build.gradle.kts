@@ -1,11 +1,10 @@
 plugins {
     id("com.android.library")
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "com.jetpackcompose.bubble"
+    namespace = "com.jetpack.menubar"
     compileSdk = 34
 
     defaultConfig {
@@ -38,12 +37,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.androidx.ui.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    implementation("androidx.annotation:annotation:1.8.2")
-    implementation("androidx.core:core:1.13.1")
-    implementation(libs.androidx.dynamicanimation)
 }

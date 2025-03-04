@@ -3,11 +3,17 @@ package com.example.jetpackcomposebubble.util
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import android.util.Log
+import com.jetpack.bubble.FloatingViewManager
+import com.example.jetpackcomposebubble.service.BubbleService
+import com.example.jetpackcomposebubble.service.BubbleService.Companion.SAFE_AREA
 
 object AppUtil {
     fun logcat(message: String, tag: String = "Jetpack Compose", enableDivider: Boolean = false) {
-        if(enableDivider){
+        if (enableDivider) {
             Log.d(tag, "----------------------------")
         }
         Log.d(tag, "-> message = $message")
@@ -23,5 +29,24 @@ object AppUtil {
             }
         }
         return false
+    }
+
+    fun Activity.startBubbleService() {
+        val isServiceRunning = isServiceRunning(BubbleService::class.java)
+        if (isServiceRunning) return
+
+        if (!Settings.canDrawOverlays(this)) return
+
+        val intent = Intent(this, BubbleService::class.java).apply {
+            val key: String = SAFE_AREA
+            val safeArea = FloatingViewManager.findCutoutSafeArea(this@startBubbleService)
+            logcat(message = "safe area of screenshot bubble = $safeArea")
+            putExtra(key, safeArea)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            application.startForegroundService(intent)
+        } else {
+            application.startService(intent)
+        }
     }
 }

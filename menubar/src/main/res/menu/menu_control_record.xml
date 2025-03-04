@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/item_pause_resume"
+        android:icon="@drawable/ic_pause_red"
+        android:title="Record"/>
+
+    <item
+        android:id="@+id/item_record"
+        android:icon="@drawable/ic_record_menu"
+        android:title="Record"/>
+
+    <item
+        android:id="@+id/item_setting"
+        android:icon="@drawable/ic_setting_bubble"
+        android:title="Settings"/>
+
+    <item
+        android:id="@+id/item_tool"
+        android:icon="@drawable/ic_multi_tool"
+        android:title="Tool"/>
+
+
+    <item
+        android:id="@+id/item_home"
+        android:icon="@drawable/ic_home_green"
+        android:title="Home"/>
+</menu>
