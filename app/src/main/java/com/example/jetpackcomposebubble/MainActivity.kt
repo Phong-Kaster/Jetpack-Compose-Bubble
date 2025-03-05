@@ -26,7 +26,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jetpackcomposebubble.core.CoreLayout
+import com.example.jetpackcomposebubble.service.BubbleService
 import com.example.jetpackcomposebubble.ui.theme.JetpackComposeBubbleTheme
+import com.example.jetpackcomposebubble.util.AppUtil.isServiceRunning
 import com.example.jetpackcomposebubble.util.AppUtil.startBubbleService
 
 class MainActivity : ComponentActivity() {
@@ -60,9 +62,17 @@ class MainActivity : ComponentActivity() {
                             floatingIconLauncher.launch(intent)
                             return@MainLayout
                         }
-  
-                        // start bubble service if every condition is satisfied
-                        startBubbleService()
+
+                        val isServiceRunning = isServiceRunning(BubbleService::class.java)
+                        if(isServiceRunning){
+                            // stop bubble service
+                            val intent = Intent(this, BubbleService::class.java)
+                            stopService(intent)
+                        } else {
+                            // start bubble service if every condition is satisfied
+                            startBubbleService()
+                        }
+
                     }
                 )
             }

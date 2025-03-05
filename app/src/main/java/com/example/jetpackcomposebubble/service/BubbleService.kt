@@ -11,22 +11,26 @@ import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.WindowManager
-import android.widget.Toast
+import androidx.compose.ui.platform.ComposeView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.lifecycleScope
-import com.jetpack.bubble.FloatingViewListener
-import com.jetpack.bubble.FloatingViewManager
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.example.jetpackcomposebubble.R
 import com.example.jetpackcomposebubble.databinding.LayoutBubbleScreenshotBinding
+import com.example.jetpackcomposebubble.ui.component.MultiToolDialog
 import com.example.jetpackcomposebubble.util.AppUtil
 import com.example.jetpackcomposebubble.util.AppUtil.visible
+import com.jetpack.bubble.FloatingViewListener
+import com.jetpack.bubble.FloatingViewManager
 import com.jetpack.menubar.FoldingTabBar
-import kotlinx.coroutines.launch
 
 /**
  * Screenshot bubble service plays a role that draws a shotcut overlays other application to capture screen.
@@ -35,7 +39,8 @@ import kotlinx.coroutines.launch
  *
  * @author Phong-Kaster
  */
-class BubbleService : LifecycleService() {
+class BubbleService() : LifecycleService(), SavedStateRegistryOwner {
+
     private val tag = this.javaClass.simpleName
 
     private val windowManager by lazy { getSystemService(Context.WINDOW_SERVICE) as WindowManager }
@@ -59,6 +64,9 @@ class BubbleService : LifecycleService() {
     private val constraintSetRTL = ConstraintSet()
     private val constraintSetLTR = ConstraintSet()
 
+    private var composeView: ComposeView? = null
+
+
     companion object {
         const val SAFE_AREA = "safeArea"
         private const val SCREENSHOT_BUBBLE_SERVICE_ID = "screenshotBubbleServiceId"
@@ -66,10 +74,20 @@ class BubbleService : LifecycleService() {
         const val SCREENSHOT_BUBBLE_NOTIFICATION_ID = 441
     }
 
+
+    private val savedStateRegistryController = SavedStateRegistryController.create(this)
+    override val savedStateRegistry: SavedStateRegistry
+        get() = savedStateRegistryController.savedStateRegistry
+
     override fun onCreate() {
         super.onCreate()
         popupNotification()
-        //collectScreenshotEvent()
+        registryComposeView()
+    }
+
+    private fun registryComposeView() {
+        savedStateRegistryController.performAttach()
+        savedStateRegistryController.performRestore(null)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -77,7 +95,6 @@ class BubbleService : LifecycleService() {
         windowManager.defaultDisplay?.getMetrics(metrics)
         (intent?.getParcelableExtra(SAFE_AREA) as Rect?)?.let { safeArea ->
             this.safeArea = safeArea
-
             setupScreenshotFabLayout(safeArea)
         }
         //emitScreenshotBubbleBus(enable = true)
@@ -86,6 +103,10 @@ class BubbleService : LifecycleService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (composeView != null) {
+            composeView = null
+        }
+
         if (::fabManager.isInitialized) {
             fabManager.removeAllViewToWindow()
         }
@@ -194,41 +215,42 @@ class BubbleService : LifecycleService() {
                 //lifecycleScope.launch { AppEventBus.emitEvent(AppEvents.ClickedBubbleEvent()) }
             }
 
-            fabLayout.menuBar.onFoldingItemClickListener = object : FoldingTabBar.OnFoldingItemSelectedListener {
-                override fun onFoldingItemSelected(item: MenuItem): Boolean {
-                    Toast.makeText(this@BubbleService, "onFoldingItemSelected", Toast.LENGTH_SHORT).show()
-                    return true
-                }
+            fabLayout.menuBar.onFoldingItemClickListener =
+                object : FoldingTabBar.OnFoldingItemSelectedListener {
+                    override fun onFoldingItemSelected(item: MenuItem): Boolean {
+                        //Toast.makeText(this@BubbleService, "onFoldingItemSelected", Toast.LENGTH_SHORT).show()
+                        return true
+                    }
 
-                override fun onOpened() {
-                    Toast.makeText(this@BubbleService, "open", Toast.LENGTH_SHORT).show()
-                }
+                    override fun onOpened() {
+                        //Toast.makeText(this@BubbleService, "open", Toast.LENGTH_SHORT).show()
+                    }
 
-                override fun onClosed() {
-                    Toast.makeText(this@BubbleService, "close", Toast.LENGTH_SHORT).show()
-                }
+                    override fun onClosed() {
+                        AppUtil.logcat(tag = tag, message = "onClosed")
+                    }
 
-                override fun onOpenSetting() {
-                    Toast.makeText(this@BubbleService, "open setting", Toast.LENGTH_SHORT).show()
-                }
+                    override fun onOpenSetting() {
+                        AppUtil.logcat(tag = tag, message = "onOpenSetting")
+                    }
 
-                override fun onOpenHome() {
-                    Toast.makeText(this@BubbleService, "on pause resume", Toast.LENGTH_SHORT).show()
-                }
+                    override fun onOpenHome() {
+                        AppUtil.logcat(tag = tag, message = "onOpenHome")
+                    }
 
-                override fun onStartStop() {
-                    Toast.makeText(this@BubbleService, "on pause resume", Toast.LENGTH_SHORT).show()
-                }
+                    override fun onStartStop() {
+                        AppUtil.logcat(tag = tag, message = "onStartStop")
+                    }
 
-                override fun onPauseResume() {
-                    Toast.makeText(this@BubbleService, "on pause resume", Toast.LENGTH_SHORT).show()
-                }
+                    override fun onPauseResume() {
+                        AppUtil.logcat(tag = tag, message = "onPauseResume")
+                    }
 
-                override fun onOpenTool() {
-                    Toast.makeText(this@BubbleService, "open tool", Toast.LENGTH_SHORT).show()
-                }
+                    override fun onOpenTool() {
+                        showMultiToolDialog()
+                    }
 
-            }
+                }
 
             fabManager.removeTrashView()
         } catch (ex: Exception) {
@@ -236,7 +258,6 @@ class BubbleService : LifecycleService() {
             ex.printStackTrace()
         }
     }
-
 
 
     private fun isRTL() = recordBubbleXPosition > metrics.widthPixels / 2
@@ -274,6 +295,8 @@ class BubbleService : LifecycleService() {
                 marginEnd = 0
             }
 
+            fabLayout.ivRecorder.visible()
+            fabLayout.ivRecorder.setImageResource(R.drawable.ic_camera)
             menuBar.rollUp()
             //menuBar.gone()
         }
@@ -337,6 +360,40 @@ class BubbleService : LifecycleService() {
                 ConstraintSet.PARENT_ID,
                 ConstraintSet.BOTTOM
             )
+        }
+    }
+
+    private fun showMultiToolDialog() {
+        if (composeView != null) {
+            windowManager.removeView(composeView)
+            composeView = null
+        }
+
+        composeView = ComposeView(this)
+        composeView?.setViewTreeSavedStateRegistryOwner(this@BubbleService)
+        composeView?.setViewTreeLifecycleOwner(this@BubbleService)
+        composeView?.setContent {
+            MultiToolDialog(
+                onClose = { windowManager.removeView(composeView) },
+                onOpenScreenshot = {},
+                onOpenFacecam = {},
+                onOpenBrush = {},
+                onOpenRegional = {},
+            )
+        }
+
+        val layoutParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+        )
+
+        try {
+            windowManager.addView(composeView, layoutParams)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
         }
     }
 }
