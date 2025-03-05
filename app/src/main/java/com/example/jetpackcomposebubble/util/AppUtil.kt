@@ -7,6 +7,10 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.view.View
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import com.jetpack.bubble.FloatingViewManager
 import com.example.jetpackcomposebubble.service.BubbleService
 import com.example.jetpackcomposebubble.service.BubbleService.Companion.SAFE_AREA
@@ -48,5 +52,17 @@ object AppUtil {
         } else {
             application.startService(intent)
         }
+    }
+
+    fun View.visible() {
+        isVisible = true
+    }
+
+    fun View.gone() {
+        isGone = true
+    }
+
+    fun View.invisible() {
+        isInvisible = true
     }
 }

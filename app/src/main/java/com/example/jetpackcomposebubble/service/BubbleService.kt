@@ -12,15 +12,21 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import com.jetpack.bubble.FloatingViewListener
 import com.jetpack.bubble.FloatingViewManager
 import com.example.jetpackcomposebubble.R
 import com.example.jetpackcomposebubble.databinding.LayoutBubbleScreenshotBinding
 import com.example.jetpackcomposebubble.util.AppUtil
+import com.example.jetpackcomposebubble.util.AppUtil.visible
 import com.jetpack.menubar.FoldingTabBar
+import kotlinx.coroutines.launch
 
 /**
  * Screenshot bubble service plays a role that draws a shotcut overlays other application to capture screen.
@@ -47,6 +53,12 @@ class BubbleService : LifecycleService() {
     private val overMargin by lazy { (metrics.density).toInt() }
     private var safeArea: Rect? = null
 
+    var recordBubbleXPosition: Int = 0
+    var recordBubbleYPosition: Int = 0
+
+    private val constraintSetRTL = ConstraintSet()
+    private val constraintSetLTR = ConstraintSet()
+
     companion object {
         const val SAFE_AREA = "safeArea"
         private const val SCREENSHOT_BUBBLE_SERVICE_ID = "screenshotBubbleServiceId"
@@ -65,6 +77,7 @@ class BubbleService : LifecycleService() {
         windowManager.defaultDisplay?.getMetrics(metrics)
         (intent?.getParcelableExtra(SAFE_AREA) as Rect?)?.let { safeArea ->
             this.safeArea = safeArea
+
             setupScreenshotFabLayout(safeArea)
         }
         //emitScreenshotBubbleBus(enable = true)
@@ -131,6 +144,8 @@ class BubbleService : LifecycleService() {
         )
         //val safeArea = (intent?.parcelable<Intent>(SAFE_AREA) as Rect?)
         AppUtil.logcat(tag = tag, message = "set up Screenshot Fab Layout continue")
+        initConstraintSetLTR()
+        initConstraintSetRTL()
         val floatingViewListener = object : FloatingViewListener {
             override fun onTouchStarted() {
                 try {
@@ -145,6 +160,8 @@ class BubbleService : LifecycleService() {
             }
 
             override fun onTouchFinished(isFinishing: Boolean, x: Int, y: Int) {
+                recordBubbleXPosition = x
+                recordBubbleYPosition = y
                 fabManager.removeTrashView()
             }
         }
@@ -168,27 +185,13 @@ class BubbleService : LifecycleService() {
         try {
             fabManager.addViewToWindow(fabLayout.root, options)
             fabLayout.root.setOnClickListener {
-                Toast.makeText(this, "Click", Toast.LENGTH_SHORT).show()
-                // Emit that users are able to click on screenshot bubble
+                AppUtil.logcat(tag = tag, message = "Recorder Bubble Service on click")
+                if (!fabLayout.menuBar.isShowing) {
+                    openMenu()
+                } else {
+                    closeMenu()
+                }
                 //lifecycleScope.launch { AppEventBus.emitEvent(AppEvents.ClickedBubbleEvent()) }
-
-//                when (RecorderBubbleBus.recordState.value) {
-//                    RecordStatus.RECORDING, RecordStatus.PAUSE -> {
-//                        lifecycleScope.launch { AppEventBus.emitEvent(RecorderEvent.TakeScreenshotWhileRecording) }
-//                    }
-//
-//                    else -> {
-//                        val enableWriteStorageAndroid10 =
-//                            this@ScreenshotBubbleService.hasStoragePermissionEnabledAndroid10AndLower()
-//                        if (!enableWriteStorageAndroid10) {
-//                            openActivity(StorageActivity::class.java)
-//                            return@setOnClickListener
-//                        }
-//
-//                        lifecycleScope.launch { AppEventBus.emitEvent(ScreenshotEvent.Capture) }
-//                        openActivity(ScreenshotActivity::class.java)
-//                    }
-//                }
             }
 
             fabLayout.menuBar.onFoldingItemClickListener = object : FoldingTabBar.OnFoldingItemSelectedListener {
@@ -231,6 +234,109 @@ class BubbleService : LifecycleService() {
         } catch (ex: Exception) {
             AppUtil.logcat(tag = tag, message = "exception = ${ex.message}")
             ex.printStackTrace()
+        }
+    }
+
+
+
+    private fun isRTL() = recordBubbleXPosition > metrics.widthPixels / 2
+    private fun openMenu() {
+        if (isRTL()) {
+            constraintSetRTL.clear(R.id.layout, ConstraintSet.START)
+            constraintSetRTL.clear(R.id.menuBar, ConstraintSet.START)
+            constraintSetRTL.applyTo(fabLayout.root as ConstraintLayout)
+
+            fabLayout.menuBar.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                marginEnd = 20
+            }
+        } else {
+            constraintSetLTR.clear(R.id.layout, ConstraintSet.END)
+            constraintSetLTR.clear(R.id.menuBar, ConstraintSet.END)
+            constraintSetLTR.applyTo(fabLayout.root as ConstraintLayout?)
+
+            fabLayout.menuBar.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                marginStart = 20
+            }
+        }
+
+        fabLayout.menuBar.expand(isRTL())
+        //fabLayout.chronometer.gone()
+        fabLayout.ivRecorder.apply {
+            visible()
+            setImageResource(R.drawable.ic_close)
+        }
+    }
+
+    private fun closeMenu() {
+        fabLayout.apply {
+            menuBar.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                marginStart = 0
+                marginEnd = 0
+            }
+
+            menuBar.rollUp()
+            //menuBar.gone()
+        }
+    }
+
+    private fun initConstraintSetLTR() {
+        constraintSetLTR.apply {
+            clone(fabLayout.root as ConstraintLayout)
+            connect(
+                R.id.layout,
+                ConstraintSet.START,
+                ConstraintSet.PARENT_ID,
+                ConstraintSet.START
+            )
+            connect(
+                R.id.menuBar,
+                ConstraintSet.START,
+                R.id.layout,
+                ConstraintSet.END
+            )
+            connect(
+                R.id.layout,
+                ConstraintSet.TOP,
+                ConstraintSet.PARENT_ID,
+                ConstraintSet.TOP
+            )
+            connect(
+                R.id.layout,
+                ConstraintSet.BOTTOM,
+                ConstraintSet.PARENT_ID,
+                ConstraintSet.BOTTOM
+            )
+        }
+    }
+
+    private fun initConstraintSetRTL() {
+        constraintSetRTL.apply {
+            clone(fabLayout.root as ConstraintLayout)
+            connect(
+                R.id.layout,
+                ConstraintSet.END,
+                ConstraintSet.PARENT_ID,
+                ConstraintSet.END
+            )
+            connect(
+                R.id.menuBar,
+                ConstraintSet.END,
+                R.id.layout,
+                ConstraintSet.START
+            )
+
+            connect(
+                R.id.layout,
+                ConstraintSet.TOP,
+                ConstraintSet.PARENT_ID,
+                ConstraintSet.TOP
+            )
+            connect(
+                R.id.layout,
+                ConstraintSet.BOTTOM,
+                ConstraintSet.PARENT_ID,
+                ConstraintSet.BOTTOM
+            )
         }
     }
 }
